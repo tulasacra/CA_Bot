@@ -72,7 +72,7 @@ namespace CA_Bot
         {
             var available = balance.Available;
             Log.WriteLine($"withdrawing {available}");
-            var result = client.Withdraw(Bch, Settings.WithdrawalAddress, available);
+            var result = client.Withdraw(Bch, Settings.WithdrawalAddress, false, available);
             Log.WriteLine($"{result.Success} {result.Error}");
         }
 
