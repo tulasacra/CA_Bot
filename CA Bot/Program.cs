@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Diagnostics.Tracing;
 using System.IO;
 using System.Threading.Tasks;
 using CoinEx.Net;
 using CoinEx.Net.Objects;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Logging;
 using Microsoft.Extensions.Configuration;
 
 namespace CA_Bot
