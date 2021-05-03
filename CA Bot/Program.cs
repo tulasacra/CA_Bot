@@ -70,14 +70,13 @@ namespace CA_Bot
             var balance = balances.Data[Bch];
             Log.WriteLine(string.Join(Environment.NewLine, balance.Available));
 
-            Withdraw(client, balance);
+            Withdraw(client, balance.Available);
         }
 
-        private static void Withdraw(CoinExClient client, CoinExBalance balance)
+        private static void Withdraw(CoinExClient client, decimal amount)
         {
-            var available = balance.Available;
-            Log.WriteLine($"withdrawing {available}");
-            var result = client.Withdraw(Bch, Settings.WithdrawalAddress, false, available);
+            Log.WriteLine($"withdrawing {amount}");
+            var result = client.Withdraw(Bch, Settings.WithdrawalAddress, false, amount);
             Log.WriteLine($"{result.Success} {result.Error}");
         }
 
