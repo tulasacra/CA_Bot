@@ -38,6 +38,11 @@ namespace CA_Bot
             var clientOptions = new CoinExClientOptions();
             clientOptions.ApiCredentials = new ApiCredentials(Settings.AccessID, Settings.SecretKey);
 
+            //clientOptions.LogVerbosity = LogVerbosity.Debug;
+            //var streamWriter = new StreamWriter("log.txt");
+            //streamWriter.AutoFlush = true;
+            //clientOptions.LogWriters.Add(streamWriter);
+
 
             using (var client = new CoinExClient(clientOptions))
             {
