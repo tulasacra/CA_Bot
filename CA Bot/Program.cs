@@ -16,7 +16,8 @@ namespace CA_Bot
         private const decimal MinBtcAmount = 0.0001m;
 
         private const string Bch = "BCH";
-        private const string BchBtc = "BCHBTC";
+
+        private static string MarketSymbol => $"{Bch}{Settings.SourceSymbol}";
 
 
         private static async Task Main(string[] args)
@@ -82,13 +83,13 @@ namespace CA_Bot
 
         private static void Buy(CoinExClient client, decimal amount)
         {
-            //var market = client.GetMarketInfo(BchBtc).Data[BchBtc];
+            //var market = client.GetMarketInfo(MarketSymbol).Data[MarketSymbol];
             //var minAmount = market.MinAmount;
             //Log.WriteLine($"minAmount {minAmount}");
 
 
-            Log.WriteLine($"buying for {amount} BTC");
-            var result = client.PlaceMarketOrder(BchBtc, TransactionType.Buy, amount);
+            Log.WriteLine($"buying for {amount} {Settings.SourceSymbol}");
+            var result = client.PlaceMarketOrder(MarketSymbol, TransactionType.Buy, amount);
             Log.WriteLine($"{result.Success} {result.Data?.ExecutedAmount} {result.Error}");
         }
 

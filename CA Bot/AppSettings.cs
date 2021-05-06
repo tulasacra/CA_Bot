@@ -6,6 +6,7 @@
         public string SecretKey { get; set; }
         public string WithdrawalAddress { get; set; }
 
+        public string SourceSymbol { get; set; }
         public decimal SourceDailyAmount { get; set; }
     }
 }
