@@ -59,24 +59,30 @@ namespace CA_Bot
             }
         }
 
-        private static void WithdrawAll(CoinExClient client)
+        private static decimal GetBalance(CoinExClient client, string symbol)
         {
-            var balances = client.GetBalances();
-            if (!balances.Success)
+            var result = client.GetBalances();
+            if (!result.Success)
             {
-                Log.WriteLine($"Failed to get {nameof(balances)}: " + balances.Error);
-                return;
+                Log.WriteLine($"getting balance. {result.Success} {result.Error}");
+                return 0;
             }
 
-            var balance = balances.Data[Bch];
-            Log.WriteLine(string.Join(Environment.NewLine, balance.Available));
+            var balance = result.Data[symbol].Available;
+            Log.WriteLine($"available {balance} {symbol}");
+            return balance;
+        }
 
-            Withdraw(client, balance.Available);
+        private static void WithdrawAll(CoinExClient client)
+        {
+            var balance = GetBalance(client, Bch);
+
+            Withdraw(client, balance);
         }
 
         private static void Withdraw(CoinExClient client, decimal amount)
         {
-            Log.WriteLine($"withdrawing {amount}");
+            Log.WriteLine($"withdrawing {amount} {Bch}");
             var result = client.Withdraw(Bch, Settings.WithdrawalAddress, false, amount);
             Log.WriteLine($"{result.Success} {result.Error}");
         }
