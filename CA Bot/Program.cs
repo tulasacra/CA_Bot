@@ -52,7 +52,9 @@ namespace CA_Bot
                     //WithdrawAll(client);
 
                     decimal HourlyAmount = Settings.SourceDailyAmount / 24m;
-                    Buy(client, HourlyAmount);
+                    var available = GetBalance(client, Settings.SourceSymbol);
+
+                    Buy(client, available > HourlyAmount ? HourlyAmount : available);
 
                     await Sleep();
                 }
@@ -92,7 +94,6 @@ namespace CA_Bot
             //var market = client.GetMarketInfo(MarketSymbol).Data[MarketSymbol];
             //var minAmount = market.MinAmount;
             //Log.WriteLine($"minAmount {minAmount}");
-
 
             Log.WriteLine($"buying for {amount} {Settings.SourceSymbol}");
             var result = client.PlaceMarketOrder(MarketSymbol, TransactionType.Buy, amount);
