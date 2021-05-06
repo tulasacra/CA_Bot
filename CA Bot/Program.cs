@@ -89,7 +89,7 @@ namespace CA_Bot
 
             Log.WriteLine($"buying for {amount} BTC");
             var result = client.PlaceMarketOrder(BchBtc, TransactionType.Buy, amount);
-            Log.WriteLine($"{result.Success} {result.Data.ExecutedAmount} {result.Error}");
+            Log.WriteLine($"{result.Success} {result.Data?.ExecutedAmount} {result.Error}");
         }
 
         private static async Task Sleep()
