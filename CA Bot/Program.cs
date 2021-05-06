@@ -70,9 +70,11 @@ namespace CA_Bot
                 return 0;
             }
 
-            var balance = result.Data[symbol].Available;
-            Log.WriteLine($"available {balance} {symbol}");
-            return balance;
+            result.Data.TryGetValue(symbol, out var balance);
+            var available = balance?.Available ?? 0;
+
+            Log.WriteLine($"available {available} {symbol}");
+            return available;
         }
 
         private static void WithdrawAll(CoinExClient client)
