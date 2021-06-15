@@ -6,6 +6,7 @@ using CoinEx.Net.Objects;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace CA_Bot
 {
@@ -38,32 +39,28 @@ namespace CA_Bot
 
             var clientOptions = new CoinExClientOptions();
             clientOptions.ApiCredentials = new ApiCredentials(Settings.AccessID, Settings.SecretKey);
-
-            //clientOptions.LogVerbosity = LogVerbosity.Debug;
-            //var streamWriter = new StreamWriter("log.txt");
-            //streamWriter.AutoFlush = true;
-            //clientOptions.LogWriters.Add(streamWriter);
+            clientOptions.LogLevel = LogLevel.Debug;
 
 
             using (var client = new CoinExClient(clientOptions))
             {
                 while (true)
                 {
-                    //WithdrawAll(client);
+                    //await WithdrawAll(client);
 
                     decimal HourlyAmount = Settings.SourceDailyAmount / 24m;
-                    var available = GetBalance(client, Settings.SourceSymbol);
+                    var available = await GetBalance(client, Settings.SourceSymbol);
 
-                    Buy(client, available > HourlyAmount ? HourlyAmount : available);
+                    await Buy(client, available > HourlyAmount ? HourlyAmount : available);
 
                     await Sleep();
                 }
             }
         }
 
-        private static decimal GetBalance(CoinExClient client, string symbol)
+        private static async Task<decimal> GetBalance(CoinExClient client, string symbol)
         {
-            var result = client.GetBalances();
+            var result = await client.GetBalancesAsync();
             if (!result.Success)
             {
                 Log.WriteLine($"getting balance. {result.Success} {result.Error}");
@@ -77,28 +74,28 @@ namespace CA_Bot
             return available;
         }
 
-        private static void WithdrawAll(CoinExClient client)
+        private static async Task WithdrawAll(CoinExClient client)
         {
-            var balance = GetBalance(client, Bch);
+            var balance = await GetBalance(client, Bch);
 
-            Withdraw(client, balance);
+            await Withdraw(client, balance);
         }
 
-        private static void Withdraw(CoinExClient client, decimal amount)
+        private static async Task Withdraw(CoinExClient client, decimal amount)
         {
             Log.WriteLine($"withdrawing {amount} {Bch}");
-            var result = client.Withdraw(Bch, Settings.WithdrawalAddress, false, amount);
+            var result = await client.WithdrawAsync(Bch, Settings.WithdrawalAddress, false, amount);
             Log.WriteLine($"{result.Success} {result.Error}");
         }
 
-        private static void Buy(CoinExClient client, decimal amount)
+        private static async Task Buy(CoinExClient client, decimal amount)
         {
             //var market = client.GetMarketInfo(MarketSymbol).Data[MarketSymbol];
             //var minAmount = market.MinAmount;
             //Log.WriteLine($"minAmount {minAmount}");
 
             Log.WriteLine($"buying for {amount} {Settings.SourceSymbol}");
-            var result = client.PlaceMarketOrder(MarketSymbol, TransactionType.Buy, amount);
+            var result = await client.PlaceMarketOrderAsync(MarketSymbol, TransactionType.Buy, amount);
             Log.WriteLine($"{result.Success} {result.Data?.ExecutedAmount} {result.Error}");
         }
 
