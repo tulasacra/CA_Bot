@@ -46,12 +46,12 @@ namespace CA_Bot
             {
                 while (true)
                 {
-                    //await WithdrawAll(client);
-
-                    decimal HourlyAmount = Settings.SourceDailyAmount / 24m;
+                    decimal hourlyAmount = Settings.SourceDailyAmount / 24m;
                     var available = await GetBalance(client, Settings.SourceSymbol);
 
-                    await Buy(client, available > HourlyAmount ? HourlyAmount : available);
+                    await Buy(client, available > hourlyAmount ? hourlyAmount : available);
+
+                    await WithdrawAll(client);
 
                     await Sleep();
                 }
