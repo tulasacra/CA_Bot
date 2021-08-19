@@ -78,7 +78,10 @@ namespace CA_Bot
         {
             var balance = await GetBalance(client, Bch);
 
-            await Withdraw(client, balance);
+            if (balance >= Settings.MinimumWithdrawalAmount)
+            {
+                await Withdraw(client, balance);
+            }
         }
 
         private static async Task Withdraw(CoinExClient client, decimal amount)
