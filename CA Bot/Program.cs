@@ -47,11 +47,12 @@ namespace CA_Bot
                 while (true)
                 {
                     decimal hourlyAmount = Settings.SourceDailyAmount / 24m;
-                    var available = await GetBalance(client, Settings.SourceSymbol);
+                    var availableSource = await GetBalance(client, Settings.SourceSymbol);
 
-                    await Buy(client, available > hourlyAmount ? hourlyAmount : available);
+                    var amountToSpend = availableSource > 2 * hourlyAmount ? hourlyAmount : availableSource;
+                    await Buy(client, amountToSpend);
 
-                    await WithdrawAll(client);
+                    await WithdrawAll(client, availableSource == amountToSpend);
 
                     await Sleep();
                 }
@@ -74,11 +75,11 @@ namespace CA_Bot
             return available;
         }
 
-        private static async Task WithdrawAll(CoinExClient client)
+        private static async Task WithdrawAll(CoinExClient client, bool overrideMinimumWithdrawalAmount)
         {
             var balance = await GetBalance(client, Bch);
 
-            if (balance >= Settings.MinimumWithdrawalAmount)
+            if (balance >= Settings.MinimumWithdrawalAmount || overrideMinimumWithdrawalAmount)
             {
                 await Withdraw(client, balance);
             }
