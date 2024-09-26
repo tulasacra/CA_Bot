@@ -81,7 +81,9 @@ namespace CA_Bot
 
             if (balance >= Settings.MinimumWithdrawalAmount || overrideMinimumWithdrawalAmount)
             {
-                await Withdraw(client, balance);
+                const decimal fee = 0.00001000m;
+
+                await Withdraw(client, balance - fee);
             }
         }
 
