@@ -351,3 +351,4 @@ MigrationBackup/
 
 # user platform setting files
 CA Bot/appsettings.*.json
+.idea
