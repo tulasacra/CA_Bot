@@ -1,30 +1,24 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using CoinEx.Net;
-using CoinEx.Net.Objects;
+using CoinEx.Net.Clients;
+using CoinEx.Net.Enums;
 using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Logging;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace CA_Bot
 {
     internal class Program
     {
         private static AppSettings Settings;
+        private const string DestinationSymbol = "BCH";
 
-        private const decimal MinBtcAmount = 0.0001m;
-
-        private const string Bch = "BCH";
-
-        private static string MarketSymbol => $"{Bch}{Settings.SourceSymbol}";
+        private static string MarketSymbol => $"{DestinationSymbol}{Settings.SourceSymbol}";
 
 
         private static async Task Main(string[] args)
         {
-            Log.WriteLine("Hello World!");
-
             #region Read AppSettings
 
             var configuration = new ConfigurationBuilder()
@@ -37,12 +31,9 @@ namespace CA_Bot
             #endregion
 
 
-            var clientOptions = new CoinExClientOptions();
-            clientOptions.ApiCredentials = new ApiCredentials(Settings.AccessID, Settings.SecretKey);
-            clientOptions.LogLevel = LogLevel.Debug;
+            var apiCredentials = new ApiCredentials(Settings.AccessID, Settings.SecretKey);
 
-
-            using (var client = new CoinExClient(clientOptions))
+            using (var client = new CoinExRestClient(options =>  options.ApiCredentials = apiCredentials))
             {
                 while (true)
                 {
@@ -59,25 +50,25 @@ namespace CA_Bot
             }
         }
 
-        private static async Task<decimal> GetBalance(CoinExClient client, string symbol)
+        private static async Task<decimal> GetBalance(CoinExRestClient client, string symbol)
         {
-            var result = await client.GetBalancesAsync();
+            var result = await client.SpotApiV2.Account.GetBalancesAsync();
             if (!result.Success)
             {
                 Log.WriteLine($"getting balance. {result.Success} {result.Error}");
                 return 0;
             }
 
-            result.Data.TryGetValue(symbol, out var balance);
+            var balance = result.Data?.First(balance => balance.Asset == symbol);
             var available = balance?.Available ?? 0;
 
             Log.WriteLine($"available {available} {symbol}");
             return available;
         }
 
-        private static async Task WithdrawAll(CoinExClient client, bool overrideMinimumWithdrawalAmount)
+        private static async Task WithdrawAll(CoinExRestClient client, bool overrideMinimumWithdrawalAmount)
         {
-            var balance = await GetBalance(client, Bch);
+            var balance = await GetBalance(client, DestinationSymbol);
 
             if (balance >= Settings.MinimumWithdrawalAmount || overrideMinimumWithdrawalAmount)
             {
@@ -87,22 +78,28 @@ namespace CA_Bot
             }
         }
 
-        private static async Task Withdraw(CoinExClient client, decimal amount)
+        private static async Task Withdraw(CoinExRestClient client, decimal amount)
         {
-            Log.WriteLine($"withdrawing {amount} {Bch}");
-            var result = await client.WithdrawAsync(Bch, Settings.WithdrawalAddress, false, amount);
+            Log.WriteLine($"withdrawing {amount} {DestinationSymbol}");
+            var result = await client.SpotApiV2.Account.WithdrawAsync(DestinationSymbol, amount, Settings.WithdrawalAddress, MovementMethod.OnChain, DestinationSymbol);
             Log.WriteLine($"{result.Success} {result.Error}");
         }
 
-        private static async Task Buy(CoinExClient client, decimal amount)
+        private static async Task Buy(CoinExRestClient client, decimal amount)
         {
             //var market = client.GetMarketInfo(MarketSymbol).Data[MarketSymbol];
             //var minAmount = market.MinAmount;
             //Log.WriteLine($"minAmount {minAmount}");
 
             Log.WriteLine($"buying for {amount} {Settings.SourceSymbol}");
-            var result = await client.PlaceMarketOrderAsync(MarketSymbol, TransactionType.Buy, amount);
-            Log.WriteLine($"{result.Success} {result.Data?.ExecutedAmount} {result.Error}");
+            var result = await client.SpotApiV2.Trading.PlaceOrderAsync(
+                MarketSymbol,
+                AccountType.Spot,
+                OrderSide.Buy,
+                OrderTypeV2.Market,
+                amount,
+                quantityAsset: Settings.SourceSymbol);
+            Log.WriteLine($"{result.Success} {result.Data?.QuantityFilled} {result.Error}");
         }
 
         private static async Task Sleep()
