@@ -37,13 +37,20 @@ namespace CA_Bot
             {
                 while (true)
                 {
-                    decimal hourlyAmount = Settings.SourceDailyAmount / 24m;
-                    var availableSource = await GetBalance(client, Settings.SourceSymbol);
+                    try
+                    {
+                        decimal hourlyAmount = Settings.SourceDailyAmount / 24m;
+                        var availableSource = await GetBalance(client, Settings.SourceSymbol);
 
-                    var amountToSpend = availableSource > 2 * hourlyAmount ? hourlyAmount : availableSource;
-                    await Buy(client, amountToSpend);
+                        var amountToSpend = availableSource > 2 * hourlyAmount ? hourlyAmount : availableSource;
+                        await Buy(client, amountToSpend);
 
-                    await WithdrawAll(client, availableSource == amountToSpend);
+                        await WithdrawAll(client, availableSource == amountToSpend);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
 
                     await Sleep();
                 }
