@@ -66,7 +66,7 @@ namespace CA_Bot
                 return 0;
             }
 
-            var balance = result.Data?.First(balance => balance.Asset == symbol);
+            var balance = result.Data?.FirstOrDefault(balance => balance.Asset == symbol);
             var available = balance?.Available ?? 0;
 
             Log.WriteLine($"available {available} {symbol}");
@@ -76,6 +76,8 @@ namespace CA_Bot
         private static async Task WithdrawAll(CoinExRestClient client, bool overrideMinimumWithdrawalAmount)
         {
             var balance = await GetBalance(client, DestinationSymbol);
+            
+            if (balance == 0) return;
 
             if (balance >= Settings.MinimumWithdrawalAmount || overrideMinimumWithdrawalAmount)
             {
@@ -94,6 +96,11 @@ namespace CA_Bot
 
         private static async Task Buy(CoinExRestClient client, decimal amount)
         {
+            if (amount <= 0)
+            {
+                return;
+            }
+            
             //var market = client.GetMarketInfo(MarketSymbol).Data[MarketSymbol];
             //var minAmount = market.MinAmount;
             //Log.WriteLine($"minAmount {minAmount}");
